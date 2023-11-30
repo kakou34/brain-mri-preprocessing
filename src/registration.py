@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import subprocess
 import matplotlib.pyplot as plt
 from multiprocessing import Pool, cpu_count
@@ -28,10 +29,10 @@ def orient2std(src_path, dst_path):
     subprocess.call(command)
     return
 
-
 def create_dir(path):
-    if not os.path.isdir(path):
-        os.makedirs(path)
+    path_obj = Path(path)
+    if not path_obj.is_dir():
+        path_obj.mkdir(parents=True, exist_ok=True)
     return
 
 
@@ -50,30 +51,28 @@ def main(src_path, dst_path, ref_path):
     return
 
 
-parent_dir = os.path.dirname(os.getcwd())
-data_dir = os.path.join(parent_dir, "data")
-data_src_dir = os.path.join(data_dir, "ADNI")
-data_dst_dir = os.path.join(data_dir, "ADNIReg")
-data_labels = ["AD", "NC"]
+parent_dir = Path.cwd().parent
+data_dir = Path('/scratch/kmouheb/p1_data')
+data_src_dir = data_dir / "ADNI_comp"
+data_dst_dir = data_dir / "ADNIReg"
+
 create_dir(data_dst_dir)
 
-ref_path = os.path.join(data_dir, "Template", "MNI152_T1_1mm.nii.gz")
+ref_path = Path('/cm/shared/apps/fsl/6.0.4/data/standard/MNI152_T1_1mm.nii.gz')
 # ref_path = os.path.join(data_dir, "Template", "MNI152_T1_1mm_brain.nii.gz")
 
 data_src_paths, data_dst_paths = [], []
-for label in data_labels:
-    src_label_dir = os.path.join(data_src_dir, label)
-    dst_label_dir = os.path.join(data_dst_dir, label)
-    create_dir(dst_label_dir)
-    for subject in os.listdir(src_label_dir):
-        data_src_paths.append(os.path.join(src_label_dir, subject))
-        data_dst_paths.append(os.path.join(dst_label_dir, subject))
+
+for subject in data_src_dir.iterdir():
+    data_src_paths.append(subject)
+    dst_label_dir = Path(str(subject).replace('ADNI_comp', 'ADNIReg'))
+    data_dst_paths.append(dst_label_dir)
 
 # Test
-# main(data_src_paths[0], data_dst_paths[0], ref_path)
+main(data_src_paths[0], data_dst_paths[0], ref_path)
 
 # Multi-processing
-paras = zip(data_src_paths, data_dst_paths,
-            [ref_path] * len(data_src_paths))
-pool = Pool(processes=cpu_count())
-pool.map(unwarp_main, paras)
+# paras = zip(data_src_paths, data_dst_paths,
+#             [ref_path] * len(data_src_paths))
+# pool = Pool(processes=cpu_count())
+# pool.map(unwarp_main, paras)

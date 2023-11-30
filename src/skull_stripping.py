@@ -2,12 +2,15 @@ from __future__ import print_function
 
 import os
 import subprocess
+from pathlib import Path
 from multiprocessing import Pool, cpu_count
 
 
 def create_dir(path):
-    if not os.path.isdir(path):
-        os.makedirs(path)
+    path_obj = Path(path)
+    if not path_obj.is_dir():
+        path_obj.mkdir(parents=True, exist_ok=True)
+    return
 
 
 def bet(src_path, dst_path, frac="0.5"):
@@ -29,27 +32,24 @@ def strip_skull(src_path, dst_path, frac="0.4"):
 
     return
 
+parent_dir = Path.cwd().parent
+data_dir = Path('/scratch/kmouheb/p1_data')
+data_src_dir = data_dir / "ADNIReg"
+data_dst_dir = data_dir / "ADNIBrain"
 
-parent_dir = os.path.dirname(os.getcwd())
-data_dir = os.path.join(parent_dir, "data")
-data_src_dir = os.path.join(data_dir, "ADNIReg")
-data_dst_dir = os.path.join(data_dir, "ADNIBrain")
-data_labels = ["AD", "NC"]
 create_dir(data_dst_dir)
 
+
 data_src_paths, data_dst_paths = [], []
-for label in data_labels:
-    src_label_dir = os.path.join(data_src_dir, label)
-    dst_label_dir = os.path.join(data_dst_dir, label)
-    create_dir(dst_label_dir)
-    for subject in os.listdir(src_label_dir):
-        data_src_paths.append(os.path.join(src_label_dir, subject))
-        data_dst_paths.append(os.path.join(dst_label_dir, subject))
+for subject in data_src_dir.iterdir():
+    data_src_paths.append(subject)
+    dst_label_dir = Path(str(subject).replace('ADNIReg', 'ADNIBrain'))
+    data_dst_paths.append(dst_label_dir)
 
 # Test
-# strip_skull(data_src_paths[0], data_dst_paths[0])
+strip_skull(data_src_paths[0], data_dst_paths[0])
 
 # Multi-processing
-paras = zip(data_src_paths, data_dst_paths)
-pool = Pool(processes=cpu_count())
-pool.map(unwarp_strip_skull, paras)
+# paras = zip(data_src_paths, data_dst_paths)
+# pool = Pool(processes=cpu_count())
+# pool.map(unwarp_strip_skull, paras)

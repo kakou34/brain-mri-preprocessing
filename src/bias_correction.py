@@ -1,13 +1,16 @@
 from __future__ import print_function
 
 import os
+from pathlib import Path
 from multiprocessing import Pool, cpu_count
 from nipype.interfaces.ants.segmentation import N4BiasFieldCorrection
 
 
 def create_dir(path):
-    if not os.path.isdir(path):
-        os.makedirs(path)
+    path_obj = Path(path)
+    if not path_obj.is_dir():
+        path_obj.mkdir(parents=True, exist_ok=True)
+    return
 
 
 def unwarp_bias_field_correction(arg, **kwarg):
@@ -18,8 +21,8 @@ def bias_field_correction(src_path, dst_path):
     print("N4ITK on: ", src_path)
     try:
         n4 = N4BiasFieldCorrection()
-        n4.inputs.input_image = src_path
-        n4.inputs.output_image = dst_path
+        n4.inputs.input_image = str(src_path)
+        n4.inputs.output_image = str(dst_path)
 
         n4.inputs.dimension = 3
         n4.inputs.n_iterations = [100, 100, 60, 40]
@@ -33,26 +36,22 @@ def bias_field_correction(src_path, dst_path):
     return
 
 
-parent_dir = os.path.dirname(os.getcwd())
-data_dir = os.path.join(parent_dir, "data")
-data_src_dir = os.path.join(data_dir, "ADNIBrain")
-data_dst_dir = os.path.join(data_dir, "ADNIDenoise")
-data_labels = ["AD", "NC"]
+parent_dir = Path.cwd().parent
+data_dir = Path('/scratch/kmouheb/p1_data')
+data_src_dir = data_dir / "ADNIBrain"
+data_dst_dir = data_dir / "ADNIDenoise"
 create_dir(data_dst_dir)
 
 data_src_paths, data_dst_paths = [], []
-for label in data_labels:
-    src_label_dir = os.path.join(data_src_dir, label)
-    dst_label_dir = os.path.join(data_dst_dir, label)
-    create_dir(dst_label_dir)
-    for subject in os.listdir(src_label_dir):
-        data_src_paths.append(os.path.join(src_label_dir, subject))
-        data_dst_paths.append(os.path.join(dst_label_dir, subject))
+for subject in data_src_dir.iterdir():
+    data_src_paths.append(subject)
+    dst_label_dir = Path(str(subject).replace('ADNIBrain', 'ADNIDenoise'))
+    data_dst_paths.append(dst_label_dir)
 
 # Test
-# bias_field_correction(data_src_paths[0], data_dst_paths[0])
+bias_field_correction(data_src_paths[0], data_dst_paths[0])
 
 # Multi-processing
-paras = zip(data_src_paths, data_dst_paths)
-pool = Pool(processes=cpu_count())
-pool.map(unwarp_bias_field_correction, paras)
+# paras = zip(data_src_paths, data_dst_paths)
+# pool = Pool(processes=cpu_count())
+# pool.map(unwarp_bias_field_correction, paras)
