@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-import os
 from pathlib import Path
 from multiprocessing import Pool, cpu_count
 from nipype.interfaces.ants.segmentation import N4BiasFieldCorrection

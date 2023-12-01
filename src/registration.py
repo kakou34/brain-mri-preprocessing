@@ -59,7 +59,7 @@ for subject in data_src_dir.iterdir():
     data_dst_paths.append(dst_label_dir)
 
 # Test
-main(data_src_paths[0], data_dst_paths[0], ref_path)
+main(data_src_paths[1], data_dst_paths[1], ref_path)
 
 # Multi-processing
 # paras = zip(data_src_paths, data_dst_paths,
