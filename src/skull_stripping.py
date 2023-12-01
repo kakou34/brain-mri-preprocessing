@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-import os
+
 import subprocess
 from pathlib import Path
 from multiprocessing import Pool, cpu_count

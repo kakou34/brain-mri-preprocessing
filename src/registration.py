@@ -1,17 +1,7 @@
 import os
 from pathlib import Path
 import subprocess
-import matplotlib.pyplot as plt
 from multiprocessing import Pool, cpu_count
-
-
-def plot_middle(data, slice_no=None):
-    if not slice_no:
-        slice_no = data.shape[-1] // 2
-    plt.figure()
-    plt.imshow(data[..., slice_no], cmap="gray")
-    plt.show()
-    return
 
 
 def registration(src_path, dst_path, ref_path):
